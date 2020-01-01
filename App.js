@@ -9,20 +9,23 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
 
+const global_colorHistory = []; // yeah, I know it's bad. Just didn't want to change a lot of codes
+
 export default class App extends React.Component {
   constructor() {
     super();
 
     this.state = {
-      colorHex: App.generateColor(),
+      colorHex: this.generateColor(),
       prevColor: null,
       touchedOn: null,
       showHelp: false,
+      showColorHistory: false,
     };
   }
 
   touchedOnRightSide() {
-    this.setState({ colorHex: App.generateColor() });
+    this.setState({ colorHex: this.generateColor() });
     this.setState({ prevColor: this.state.colorHex });
   }
 
@@ -32,18 +35,20 @@ export default class App extends React.Component {
       : null;
   }
 
-  static generateColor() {
+  generateColor() {
     const hex = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F'];
 
-    return (
+    const clr =
       '#' +
       hex[App.r(15)] +
       hex[App.r(15)] +
       hex[App.r(15)] +
       hex[App.r(15)] +
       hex[App.r(15)] +
-      hex[App.r(15)]
-    );
+      hex[App.r(15)];
+
+    global_colorHistory.push(clr);
+    return clr;
   }
 
   static r(max) {
@@ -78,7 +83,8 @@ export default class App extends React.Component {
             padding: 15,
             borderRadius: 2000000,
             elevation: 10,
-            zIndex: 200000,
+            zIndex: 2000,
+            opacity: this.state.showColorHistory ? 0 : 1,
           }}
           onTouchStart={e => {
             e.stopPropagation();
@@ -91,7 +97,34 @@ export default class App extends React.Component {
             color='#141414'
           />
         </View>
+
+        {/* floating button for showing color history */}
+        <View
+          style={{
+            position: 'absolute',
+            right: 30,
+            bottom: this.state.showColorHistory ? 30 : 30 + 80,
+            backgroundColor: '#fff',
+            padding: 15,
+            borderRadius: 2000000,
+            elevation: 10,
+            zIndex: 2000,
+            opacity: this.state.showHelp ? 0 : 1,
+          }}
+          onTouchStart={e => {
+            e.stopPropagation();
+            this.setState({ showColorHistory: !this.state.showColorHistory });
+          }}
+        >
+          <Icon
+            name={this.state.showColorHistory ? 'close' : 'bars'}
+            size={30}
+            color='#141414'
+          />
+        </View>
+
         <Help showHelp={this.state.showHelp} />
+        <ShowColors showColorHistory={this.state.showColorHistory} />
       </View>
     );
   }
@@ -150,12 +183,52 @@ function Help({ showHelp }) {
           <Text style={{ fontWeight: 'bold', fontSize: 22 }}>
             Release Notes{'\n'}
           </Text>
+          <Text style={{ fontWeight: 'bold' }}>v1.2</Text>
+          {'\n'} - Color history: never miss any color {'\n'}
           <Text style={{ fontWeight: 'bold' }}>v1.1</Text>
           {'\n'} - Check Previous Color {'\n'}
           <Text style={{ fontWeight: 'bold' }}>v1.0</Text>
           {'\n'} - Implemented Help Menu{'\n'} - Added Color Generator{'\n'} -
           Initial Release
         </Text>
+      </ScrollView>
+    </View>
+  ) : null;
+}
+
+// component for handling previous color
+function ShowColors({ showColorHistory }) {
+  return showColorHistory ? (
+    <View
+      onClick={e => e.stopPropagation()}
+      style={{
+        backgroundColor: 'white',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 100,
+      }}
+    >
+      <ScrollView
+        style={{
+          display: 'flex',
+        }}
+      >
+        {global_colorHistory.map((v, i) => (
+          <Text
+            key={i}
+            style={{
+              backgroundColor: v,
+              padding: 20,
+              textAlign: 'center',
+              fontWeight: 'bold',
+            }}
+          >
+            {v}
+          </Text>
+        ))}
       </ScrollView>
     </View>
   ) : null;
